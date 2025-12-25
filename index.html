@@ -1,0 +1,279 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<title>중3 과학 - 멘델의 유전법칙 완전정복</title>
+<style>
+  body { font-family: 'Malgun Gothic', sans-serif; background: #f0f4f8; margin: 0; padding: 20px; line-height: 1.6; }
+  .container { max-width: 950px; margin: auto; background: white; padding: 30px; border-radius: 15px; box-shadow: 0 5px 15px rgba(0,0,0,0.08); }
+  
+  .header { text-align: center; border-bottom: 3px solid #3b82f6; padding-bottom: 10px; margin-bottom: 30px; }
+  .header h1 { color: #1e40af; margin-bottom: 5px; }
+  .header p { color: #64748b; margin-top: 0; font-size: 0.9em; }
+
+  .setup-section { display: flex; gap: 20px; background: #eff6ff; padding: 20px; border-radius: 12px; margin-bottom: 20px; }
+  .panel { flex: 1; text-align: center; }
+  select { font-size: 16px; padding: 10px; border-radius: 8px; border: 2px solid #3b82f6; width: 100%; cursor: pointer; }
+
+  .gametes { margin-top: 15px; display: flex; justify-content: center; gap: 10px; }
+  .gamete-btn { width: 55px; height: 55px; border-radius: 50%; border: 2px solid #94a3b8; background: white; cursor: pointer; font-weight: bold; transition: 0.2s; }
+  .gamete-btn.selected { background: #3b82f6; color: white; border-color: #1d4ed8; transform: translateY(-3px); }
+
+  #result-area { margin-top: 30px; display: none; }
+  .result-card { display: flex; align-items: center; justify-content: center; gap: 30px; background: #ffffff; padding: 25px; border-radius: 15px; border: 2px solid #facc15; }
+  .pea-photo { width: 60px; height: 60px; object-fit: contain; display: block; margin: 0 auto; }
+
+  table { width: 100%; border-collapse: collapse; margin-top: 15px; text-align: center; background: white; }
+  th, td { border: 1px solid #e2e8f0; padding: 10px; }
+  th { background: #f8fafc; color: #475569; }
+  .highlight { background: #f0f9ff; outline: 2px solid #3b82f6; }
+
+  /* 퀴즈 섹션 */
+  .quiz-section { margin-top: 40px; padding: 25px; background: #fff7ed; border-radius: 15px; border: 2px dashed #fb923c; }
+  .quiz-card { background: white; padding: 20px; border-radius: 10px; box-shadow: 0 2px 5px rgba(0,0,0,0.05); min-height: 150px; }
+  .quiz-options { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 15px; }
+  .option-btn { padding: 12px; border: 1px solid #fdba74; background: white; border-radius: 8px; cursor: pointer; transition: 0.2s; font-size: 14px; text-align: left; }
+  .option-btn:hover { background: #ffedd5; }
+  .option-btn:disabled { cursor: default; opacity: 0.7; }
+  #quiz-feedback { margin-top: 15px; font-weight: bold; text-align: center; height: 24px; }
+  #quiz-status { font-size: 0.8em; color: #9a3412; margin-bottom: 10px; text-align: right; }
+
+  .study-note { background: #f1f5f9; padding: 20px; border-radius: 12px; margin-top: 40px; border-left: 6px solid #3b82f6; }
+  .point-box { background: white; padding: 15px; border-radius: 8px; margin-top: 10px; border: 1px solid #e2e8f0; }
+  .important { color: #e11d48; font-weight: bold; }
+</style>
+</head>
+<body>
+
+<div class="container">
+  <div class="header">
+    <h1>멘델의 유전법칙</h1>
+    <p>중학교 3학년 과학 - 유전 핵심 원리 정복</p>
+  </div>
+
+  <div class="setup-section">
+    <div class="panel">
+      <strong>어머니 유전자형 (♀)</strong>
+      <select id="parentA" onchange="initSim()">
+        <option value="RrYy">RrYy (잡종)</option>
+        <option value="RRYY">RRYY (둥글고 노람-순종)</option>
+        <option value="rryy">rryy (주름지고 초록-순종)</option>
+      </select>
+      <div id="gametesA" class="gametes"></div>
+    </div>
+    <div class="panel">
+      <strong>아버지 유전자형 (♂)</strong>
+      <select id="parentB" onchange="initSim()">
+        <option value="RrYy">RrYy (잡종)</option>
+        <option value="RRYY">RRYY (둥글고 노람-순종)</option>
+        <option value="rryy">rryy (주름지고 초록-순종)</option>
+      </select>
+      <div id="gametesB" class="gametes"></div>
+    </div>
+  </div>
+
+  <div id="result-area">
+    <div class="result-card">
+      <img id="pea-main-img" style="width:100px; height:100px; object-fit:contain;" src="" alt="결과 완두콩">
+      <div>
+        <div style="color: #854d0e; font-weight: bold;">교배 자손 결과</div>
+        <div id="geno-txt" style="font-size: 28px; font-weight: bold; color: #1e40af;"></div>
+        <div id="pheno-txt" style="font-size: 18px;"></div>
+      </div>
+    </div>
+
+    <h3 style="text-align: center;">유전자 조합 표</h3>
+    <div id="table-box"></div>
+    <div id="stats-box" style="margin-top:15px; font-weight: bold; color: #2563eb;"></div>
+
+    <div class="quiz-section">
+      <h2 style="color: #ea580c; margin-top: 0;">실전 시험 대비 퀴즈</h2>
+      <div id="quiz-status">남은 문제: 0</div>
+      <div class="quiz-card" id="quiz-container">
+        <div id="quiz-question" style="font-size: 17px; font-weight: bold; color: #444;"></div>
+        <div class="quiz-options" id="quiz-options"></div>
+        <div id="quiz-feedback"></div>
+        <button id="next-quiz-btn" onclick="generateQuiz()" style="display:none; margin-top: 15px; padding: 8px 15px; background: #fb923c; color: white; border: none; border-radius: 5px; cursor: pointer; float: right;">다음 문제</button>
+        <button id="reset-quiz-btn" onclick="resetQuiz()" style="display:none; margin-top: 15px; padding: 8px 15px; background: #3b82f6; color: white; border: none; border-radius: 5px; cursor: pointer; float: right;">처음부터 다시 풀기</button>
+        <div style="clear: both;"></div>
+      </div>
+    </div>
+
+    <div class="study-note">
+      <h2>중3 시험 대비 핵심 포인트</h2>
+      <div class="point-box">
+        <strong>1. 분리의 법칙</strong><br>
+        대립 유전자가 감수 분열 시 나누어져 각각의 생식세포로 들어가는 현상입니다. 잡종 2대에서 표현형 비가 3:1로 나타나는 근거가 됩니다.
+      </div>
+      <div class="point-box">
+        <strong>2. 독립의 법칙</strong><br>
+        서로 다른 두 쌍의 대립 형질(모양, 색깔)이 유전될 때 서로 간섭하지 않고 독립적으로 유전되는 현상입니다. 표현형 비가 9:3:3:1로 나타납니다.
+      </div>
+      <div class="point-box">
+        <strong>3. 우열의 원리</strong><br>
+        순종의 대립 형질을 교배했을 때, 잡종 1대에서 우성 형질만 나타나는 원리입니다. 대문자(R, Y)가 하나라도 있으면 우성 형질이 발현됩니다.
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+// 사진 주소 설정 부분 (사용자 설정 유지)
+const peaImages = {
+  "RY": "https://i.pinimg.com/736x/2c/d5/77/2cd5770082642a43807fc88b3d95d48b.jpg", 
+  "Ry": "https://i.pinimg.com/736x/12/96/7c/12967c309e4cc68184c43b3b04f8b1e3.jpg", 
+  "rY": "https://i.pinimg.com/originals/86/be/ce/86beceb67f5b771ddb9730e93ad0f5a9.png", 
+  "ry": "https://cgaxisimages.fra1.cdn.digitaloceanspaces.com/2021/08/green_wrinkled_foil_41_08-1.jpg" 
+};
+
+// 퀴즈 원본 데이터
+const originalQuizData = [
+  { id: 1, q: "유전자형이 RrYy인 완두를 자가 수분시켰을 때, 생식세포의 종류로 옳은 것은?", a: ["RY, Ry, rY, ry", "Rr, Yy", "RR, YY, rr, yy", "R, r, Y, y"], c: 0 },
+  { id: 2, q: "잡종 2대에서 '둥글고 노란색 : 둥글고 초록색 : 주름지고 노란색 : 주름지고 초록색'의 이론적 표현형 비는?", a: ["3 : 1", "1 : 1 : 1 : 1", "9 : 3 : 3 : 1", "1 : 2 : 1"], c: 2 },
+  { id: 3, q: "유전자형이 Rryy인 완두의 표현형은 무엇입니까?", a: ["둥글고 노란색", "둥글고 초록색", "주름지고 노란색", "주름지고 초록색"], c: 1 },
+  { id: 4, q: "멘델의 법칙 중 감수 분열 시 대립 유전자가 나뉘어 들어가는 원리는?", a: ["우열의 원리", "분리의 법칙", "독립의 법칙", "중간 유전"], c: 1 },
+  { id: 5, q: "RrYy와 rryy를 교배했을 때, 자손에서 주름지고 초록색(rryy)이 나올 확률은?", a: ["1/4 (25%)", "1/16 (6.25%)", "9/16 (56.25%)", "1/2 (50%)"], c: 0 }
+];
+
+// 현재 남은 퀴즈를 저장할 배열
+let remainingQuizzes = [...originalQuizData];
+let currentQuizIndex = -1;
+
+let selA = null, selB = null;
+
+function getG(genotype) {
+  const a1 = [genotype[0], genotype[1]], a2 = [genotype[2], genotype[3]];
+  let res = [];
+  a1.forEach(v1 => a2.forEach(v2 => res.push(v1 + v2)));
+  return res;
+}
+
+function initSim() {
+  const gA = document.getElementById('parentA').value, gB = document.getElementById('parentB').value;
+  renderBtns('A', gA); renderBtns('B', gB);
+  selA = null; selB = null;
+  document.getElementById('result-area').style.display = 'block';
+  updateTable(gA, gB);
+  if (remainingQuizzes.length === originalQuizData.length) generateQuiz();
+}
+
+function renderBtns(p, geno) {
+  const area = document.getElementById('gametes' + p);
+  area.innerHTML = '';
+  [...new Set(getG(geno))].forEach(g => {
+    const b = document.createElement('button');
+    b.className = 'gamete-btn'; b.innerText = g;
+    b.onclick = () => {
+      [...area.children].forEach(x => x.classList.remove('selected'));
+      b.classList.add('selected');
+      p === 'A' ? selA = g : selB = g;
+      showChild();
+    };
+    area.appendChild(b);
+  });
+}
+
+function getPhenoInfo(g) {
+  const R = g.includes('R'), Y = g.includes('Y');
+  const key = (R ? 'R' : 'r') + (Y ? 'Y' : 'y');
+  return { 
+    name: (R ? "둥근" : "주름진") + " " + (Y ? "노란색" : "초록색"),
+    img: peaImages[key]
+  };
+}
+
+function showChild() {
+  if(!selA || !selB) return;
+  const finalG = [selA[0], selB[0]].sort().join("") + [selA[1], selB[1]].sort().join("");
+  const info = getPhenoInfo(finalG);
+  document.getElementById('pea-main-img').src = info.img;
+  document.getElementById('geno-txt').innerText = finalG;
+  document.getElementById('pheno-txt').innerText = info.name;
+  updateTable(document.getElementById('parentA').value, document.getElementById('parentB').value, finalG);
+}
+
+function updateTable(gA, gB, high = null) {
+  const listA = getG(gA), listB = getG(gB);
+  let html = `<table><tr><th>부 ╲ 모</th>`;
+  listB.forEach(b => html += `<th>${b}</th>`);
+  html += `</tr>`;
+  let stats = {};
+  listA.forEach(ga => {
+    html += `<tr><th>${ga}</th>`;
+    listB.forEach(gb => {
+      const res = [ga[0], gb[0]].sort().join("") + [ga[1], gb[1]].sort().join("");
+      const info = getPhenoInfo(res);
+      stats[info.name] = (stats[info.name] || 0) + 1;
+      html += `<td class="${res === high ? 'highlight' : ''}"><img src="${info.img}" class="pea-photo"><small>${res}</small></td>`;
+    });
+    html += `</tr>`;
+  });
+  document.getElementById('table-box').innerHTML = html + `</table>`;
+  let sTxt = "표현형 통계 결과: ";
+  for(let k in stats) sTxt += `${k}(${stats[k]}) `;
+  document.getElementById('stats-box').innerText = sTxt;
+}
+
+function generateQuiz() {
+  const feedback = document.getElementById('quiz-feedback');
+  const nextBtn = document.getElementById('next-quiz-btn');
+  const resetBtn = document.getElementById('reset-quiz-btn');
+  const status = document.getElementById('quiz-status');
+  
+  feedback.innerText = '';
+  nextBtn.style.display = 'none';
+  resetBtn.style.display = 'none';
+
+  if (remainingQuizzes.length === 0) {
+    document.getElementById('quiz-question').innerText = "수고하셨습니다!";
+    document.getElementById('quiz-options').innerHTML = '';
+    resetBtn.style.display = 'block';
+    status.innerText = "남은 문제: 0";
+    return;
+  }
+
+  status.innerText = "남은 문제: " + remainingQuizzes.length;
+  currentQuizIndex = Math.floor(Math.random() * remainingQuizzes.length);
+  const quiz = remainingQuizzes[currentQuizIndex];
+  
+  document.getElementById('quiz-question').innerText = "질문: " + quiz.q;
+  const optionsArea = document.getElementById('quiz-options');
+  optionsArea.innerHTML = '';
+  
+  quiz.a.forEach((opt, idx) => {
+    const btn = document.createElement('button');
+    btn.className = 'option-btn';
+    btn.innerText = (idx + 1) + ". " + opt;
+    btn.onclick = () => checkQuiz(idx, quiz.c);
+    optionsArea.appendChild(btn);
+  });
+}
+
+function checkQuiz(selected, correct) {
+  const feedback = document.getElementById('quiz-feedback');
+  const options = document.querySelectorAll('.option-btn');
+  
+  // 정답인 경우 해당 문제 제거 후 다음 버튼 표시
+  if(selected === correct) {
+    feedback.innerText = "정답입니다! 다음 문제로 넘어갑니다.";
+    feedback.style.color = "#16a34a";
+    // 배열에서 제거
+    remainingQuizzes.splice(currentQuizIndex, 1);
+    document.getElementById('next-quiz-btn').style.display = 'block';
+    options.forEach(btn => btn.disabled = true);
+  } else {
+    feedback.innerText = "아쉽습니다. 다시 한 번 생각해보세요.";
+    feedback.style.color = "#dc2626";
+  }
+}
+
+function resetQuiz() {
+  remainingQuizzes = [...originalQuizData];
+  generateQuiz();
+}
+
+initSim();
+</script>
+</body>
+</html>
+
